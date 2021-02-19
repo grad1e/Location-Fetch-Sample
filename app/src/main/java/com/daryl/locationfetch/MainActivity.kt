@@ -151,5 +151,4 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
-
 }
