@@ -7,7 +7,6 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.os.Looper
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -72,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             interval = 1 * 1000
+            isWaitForAccurateLocation = true
         }
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
         val client = LocationServices.getSettingsClient(this)
@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
                 locationCallback,
-                Looper.myLooper()
+                mainLooper
             )
         }
 
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
     private fun openPermissionRationaleDialog() {
         Snackbar.make(
             binding.root,
-            "Location permission is required to fetch the PIN Code",
+            getString(R.string.error_location_permission),
             Snackbar.LENGTH_LONG
         ).setAction("Allow") {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)

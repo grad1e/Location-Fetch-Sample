@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Location Fetch</string>
+    <string name="error_location_permission">Location permission is required to fetch the PIN Code</string>
 </resources>
