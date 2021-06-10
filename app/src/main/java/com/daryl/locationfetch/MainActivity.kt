@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,14 +17,10 @@ import com.daryl.locationfetch.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @SuppressLint("MissingPermission")
 class MainActivity : AppCompatActivity() {
-
-    companion object {
-        private const val TAG = "MainActivity"
-    }
 
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
@@ -60,12 +55,12 @@ class MainActivity : AppCompatActivity() {
                     binding.textCountryCode.text = address.countryCode
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "setLocation", e)
+                Timber.e(e)
                 binding.textCountry.text = ""
                 binding.textCountryCode.text = ""
             }
         } else {
-            Log.e(TAG, "Geocoder isn't present")
+            Timber.e("Geocoder isn't present")
         }
     }
 
