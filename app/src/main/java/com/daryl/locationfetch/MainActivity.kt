@@ -38,6 +38,9 @@ class MainActivity : AppCompatActivity() {
         binding.btnFetchLocation.setOnClickListener {
             onButtonPressed()
         }
+        binding.btnForceFetch.setOnClickListener {
+            onButtonPressed(true)
+        }
     }
 
     private fun setLocation(location: Location) {
@@ -64,12 +67,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onButtonPressed() {
+    private fun onButtonPressed(forceFetch: Boolean = false) {
         when {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED -> fetchLastLocation()
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                if (forceFetch) {
+                    createLocationRequest()
+                } else {
+                    fetchLastLocation()
+                }
+            }
 
             ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
