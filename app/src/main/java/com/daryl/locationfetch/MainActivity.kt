@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import androidx.activity.result.IntentSenderRequest
@@ -17,16 +18,22 @@ import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
 
+@SuppressLint("MissingPermission")
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private val binding by lazy {
+        ActivityMainBinding.inflate(layoutInflater)
+    }
+    private val fusedLocationClient by lazy {
+        LocationServices.getFusedLocationProviderClient(this)
+    }
+    private val geocoder by lazy {
+        Geocoder(this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         binding.btnFetchLocation.setOnClickListener {
             onButtonPressed()
         }
@@ -37,6 +44,11 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
         binding.textLatitude.text = location.latitude.toString()
         binding.textLongitude.text = location.longitude.toString()
+        val addressList = geocoder.getFromLocation(location.latitude, location.longitude, 10)
+        addressList[0]?.let { address ->
+            binding.textCountry.text = address.countryName
+            binding.textCountryCode.text = address.countryCode
+        }
     }
 
     private fun onButtonPressed() {
@@ -55,7 +67,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun fetchLastLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             if (location != null) {
@@ -66,7 +77,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private fun createLocationRequest() {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
