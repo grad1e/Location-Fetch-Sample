@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -17,9 +18,14 @@ import com.daryl.locationfetch.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 @SuppressLint("MissingPermission")
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
@@ -44,10 +50,22 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
         binding.textLatitude.text = location.latitude.toString()
         binding.textLongitude.text = location.longitude.toString()
-        val addressList = geocoder.getFromLocation(location.latitude, location.longitude, 10)
-        addressList[0]?.let { address ->
-            binding.textCountry.text = address.countryName
-            binding.textCountryCode.text = address.countryCode
+
+        if (Geocoder.isPresent()) {
+            try {
+                val addressList =
+                    geocoder.getFromLocation(location.latitude, location.longitude, 10)
+                addressList[0]?.let { address ->
+                    binding.textCountry.text = address.countryName
+                    binding.textCountryCode.text = address.countryCode
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "setLocation", e)
+                binding.textCountry.text = ""
+                binding.textCountryCode.text = ""
+            }
+        } else {
+            Log.e(TAG, "Geocoder isn't present")
         }
     }
 
