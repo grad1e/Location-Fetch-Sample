@@ -72,6 +72,10 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED -> {
                 if (forceFetch) {
                     createLocationRequest()
@@ -83,9 +87,18 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.shouldShowRequestPermissionRationale(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
+            ) || ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) -> openPermissionRationaleDialog()
 
-            else -> requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+
+            else -> requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         }
     }
 
@@ -137,13 +150,18 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.error_location_permission),
             Snackbar.LENGTH_LONG
         ).setAction("Allow") {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
         }.show()
     }
 
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) {
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (it.containsValue(true)) {
                 fetchLastLocation()
             } else {
                 Snackbar.make(
@@ -155,17 +173,17 @@ class MainActivity : AppCompatActivity() {
         }
 
     private val locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult?) {
-            locationResult?.lastLocation?.let {
-                setLocation(it)
-            }
+        override fun onLocationResult(locationResult: LocationResult) {
+            setLocation(locationResult.lastLocation)
         }
     }
 
     private val settingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
             when (it.resultCode) {
-                Activity.RESULT_OK -> fetchLastLocation()
+                Activity.RESULT_OK -> {
+                    fetchLastLocation()
+                }
                 Activity.RESULT_CANCELED -> Snackbar.make(
                     binding.root,
                     "Location permission is required to fetch the PIN Code",
